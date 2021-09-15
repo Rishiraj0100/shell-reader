@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="shell-reader",
-    version='0.1.0',
+    version='0.1.1',
     author="Rishiraj0100",
     description="A module for executing and reading shell.",
     packages=find_packages(exclude=["docs", ".github", "examples", "tests"]),
