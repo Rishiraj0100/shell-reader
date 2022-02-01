@@ -90,12 +90,16 @@ class ShellReader:
 
         raise StopAsyncIteration()
 
-async def execute(text: str, timeout: int = 120, loop = None, raw_list: bool = False):
+async def execute(text: str, sync: bool = False, timeout: int = 120, loop = None, raw_list: bool = False):
   resp = []
   with ShellReader(text, timeout, loop) as reader:
     async for line in reader:
-      resp.append(line)
-  
+      if sync:
+        yield line
+      else: resp.append(line)
+
+  if sync: return
+
   if raw_list:
     return resp
   return "\n".join(resp)
