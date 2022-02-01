@@ -16,7 +16,7 @@ def background_reader(stream, loop: asyncio.AbstractEventLoop, callback):
 
 
 class ShellReader:
-    def __init__(self, code: str, timeout: int = 120, loop: asyncio.AbstractEventLoop = None):
+    def __init__(self, code: str, *, timeout: int = 120, loop: asyncio.AbstractEventLoop = None):
         if WINDOWS:
             # Check for powershell
             if pathlib.Path(r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe").exists():
@@ -90,7 +90,7 @@ class ShellReader:
 
         raise StopAsyncIteration()
 
-async def execute(text: str, sync: bool = False, timeout: int = 120, loop = None, raw_list: bool = False):
+async def execute(text: str, *, sync: bool = False, timeout: int = 120, loop = None, raw_list: bool = False):
   resp = []
   with ShellReader(text, timeout, loop) as reader:
     async for line in reader:
