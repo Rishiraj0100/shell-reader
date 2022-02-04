@@ -90,16 +90,52 @@ class ShellReader:
 
         raise StopAsyncIteration()
 
-async def execute(text: str, sync: bool = False, timeout: int = 120, loop = None, raw_list: bool = False):
-  resp = []
-  with ShellReader(text, timeout, loop) as reader:
-    async for line in reader:
-      if sync:
+def repr_as_function(cls):
+  def _(*args, **kwargs): return cls(*args,**kwargs)
+  _.__name__ = cls.__name__
+  _.__doc__ = cls.__doc__
+  return _
+
+@repr_as_function
+class execute:
+  def __init__(self, text: str, timeout: int = 120, loop = None):
+    self.__text = text
+    self.__timeout = timeout
+    self.__loop = None
+    self.__resp = []
+    self.__done = False
+
+  def __await__(self):
+    async def main():
+      if self.__done: raise RuntimeError("cannot reuse already awaited coroutine")
+
+      
+      async for line in self:
+        resp.append(line)
+
+      self.__done = True
+      self.__resp = resp
+      return resp
+
+    return main().__await__()
+
+
+  async def __aiter__(self):
+    if self.__done:
+      for i in self.__resp: yield i
+      return
+
+    resp = []
+    with ShellReader(self.__text, self.__timeout, self.__loop) as reader:
+      async for line in reader:
+        resp.append(line)
         yield line
-      else: resp.append(line)
 
-  if sync: return
+      resp.append(f"\n[status] Return code {reader.close_code}")
 
-  if raw_list:
-    return resp
-  return "\n".join(resp)
+    self.__done = True
+    self.__resp = resp
+    return
+
+  def __repr__(self):
+    return f"<coroutine object execute at {super().__repr__().split(' ')[-1][:-2]}>"
