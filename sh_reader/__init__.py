@@ -90,11 +90,14 @@ class ShellReader:
 
         raise StopAsyncIteration()
 
-def repr_as_function(cls):
-  def _(*args, **kwargs): return cls(*args,**kwargs)
-  _.__name__ = cls.__name__
-  _.__doc__ = cls.__doc__
-  return _
+class repr_as_function:
+  def __init__(self, cls):
+    self.__name__ = cls.__name__
+    self.__doc__ = cls.__doc__
+    self.__cls = cls
+
+  def __call__(self, *args, **kwargs): return self.__cls(*args,**kwargs)
+  def __repr__(self): return f"<function {self.__cls.__module__}.{self.__name__} at {super().__repr__().split(' ')[-1][:-2]}>"
 
 @repr_as_function
 class execute:
@@ -109,7 +112,7 @@ class execute:
     async def main():
       if self.__done: raise RuntimeError("cannot reuse already awaited coroutine")
 
-      
+      resp = []
       async for line in self:
         resp.append(line)
 
